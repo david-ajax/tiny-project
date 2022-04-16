@@ -7,7 +7,9 @@ import enemy
 import bullet
 import supply
 import time
+import os
 
+abspath = os.getcwd() + "/"
 from pygame.locals import *
 from random import *
 jj = 0
@@ -18,40 +20,41 @@ bg_size = width, height = 480, 700
 screen = pygame.display.set_mode(bg_size)
 pygame.display.set_caption("Plane Fighting")
 key_pressed = pygame.key.get_pressed()
-background=pygame.image.load("images/loading.png")  #图片位置
+background=pygame.image.load(abspath + "images/loading.png")  #图片位置
 screen.blit(background,(0,0))  #对齐的坐标
 pygame.display.update()   #显示内容
-time.sleep(1)
-background = pygame.image.load("images/background.png").convert()
+pygame.mixer.music.load(abspath + "sound/game_music.ogg")
+pygame.mixer.music.set_volume(0.1)
+pygame.mixer.music.play(-1)
+time.sleep(7.5)
+background = pygame.image.load(abspath + "images/background.png").convert()
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
 # 载入游戏音乐
-pygame.mixer.music.load("sound/game_music.ogg")
-pygame.mixer.music.set_volume(0.1)
-bullet_sound = pygame.mixer.Sound("sound/bullet.wav")
+bullet_sound = pygame.mixer.Sound(abspath + "sound/bullet.wav")
 bullet_sound.set_volume(0.2)
-bomb_sound = pygame.mixer.Sound("sound/use_bomb.wav")
+bomb_sound = pygame.mixer.Sound(abspath + "sound/use_bomb.wav")
 bomb_sound.set_volume(0.2)
-supply_sound = pygame.mixer.Sound("sound/supply.wav")
+supply_sound = pygame.mixer.Sound(abspath + "sound/supply.wav")
 supply_sound.set_volume(0.2)
-get_bomb_sound = pygame.mixer.Sound("sound/get_bomb.wav")
+get_bomb_sound = pygame.mixer.Sound(abspath + "sound/get_bomb.wav")
 get_bomb_sound.set_volume(0.2)
-get_bullet_sound = pygame.mixer.Sound("sound/get_bullet.wav")
+get_bullet_sound = pygame.mixer.Sound(abspath + "sound/get_bullet.wav")
 get_bullet_sound.set_volume(0.2)
-upgrade_sound = pygame.mixer.Sound("sound/upgrade.wav")
+upgrade_sound = pygame.mixer.Sound(abspath + "sound/upgrade.wav")
 upgrade_sound.set_volume(0.2)
-enemy3_fly_sound = pygame.mixer.Sound("sound/enemy3_flying.wav")
+enemy3_fly_sound = pygame.mixer.Sound(abspath + "sound/enemy3_flying.wav")
 enemy3_fly_sound.set_volume(0.2)
-enemy1_down_sound = pygame.mixer.Sound("sound/enemy1_down.wav")
+enemy1_down_sound = pygame.mixer.Sound(abspath + "sound/enemy1_down.wav")
 enemy1_down_sound.set_volume(0.2)
-enemy2_down_sound = pygame.mixer.Sound("sound/enemy2_down.wav")
+enemy2_down_sound = pygame.mixer.Sound(abspath + "sound/enemy2_down.wav")
 enemy2_down_sound.set_volume(0.2)
-enemy3_down_sound = pygame.mixer.Sound("sound/enemy3_down.wav")
+enemy3_down_sound = pygame.mixer.Sound(abspath + "sound/enemy3_down.wav")
 enemy3_down_sound.set_volume(0.5)
-me_down_sound = pygame.mixer.Sound("sound/me_down.wav")
+me_down_sound = pygame.mixer.Sound(abspath + "sound/me_down.wav")
 
 
 
@@ -82,7 +85,6 @@ def main():
     me = myplane.MyPlane(bg_size)
 
     enemies = pygame.sprite.Group()
-    pygame.mixer.music.play(-1)
 
 
     # Enemy Level 1
@@ -122,14 +124,14 @@ def main():
 
     # 统计得分
     score = 0
-    score_font = pygame.font.Font("font/font.ttf", 36)
+    score_font = pygame.font.Font(abspath + "font/font.ttf", 36)
 
     # 标志是否暂停游戏
     paused = False
-    pause_nor_image = pygame.image.load("images/pause_nor.png").convert_alpha()
-    pause_pressed_image = pygame.image.load("images/pause_pressed.png").convert_alpha()
-    resume_nor_image = pygame.image.load("images/resume_nor.png").convert_alpha()
-    resume_pressed_image = pygame.image.load("images/resume_pressed.png").convert_alpha()
+    pause_nor_image = pygame.image.load(abspath + "images/pause_nor.png").convert_alpha()
+    pause_pressed_image = pygame.image.load(abspath + "images/pause_pressed.png").convert_alpha()
+    resume_nor_image = pygame.image.load(abspath + "images/resume_nor.png").convert_alpha()
+    resume_pressed_image = pygame.image.load(abspath + "images/resume_pressed.png").convert_alpha()
     paused_rect = pause_nor_image.get_rect()
     paused_rect.left, paused_rect.top = width - paused_rect.width - 10, 10
     paused_image = pause_nor_image
@@ -138,9 +140,9 @@ def main():
     level = 1
 
     # 全屏炸弹
-    bomb_image = pygame.image.load("images/bomb.png").convert_alpha()
+    bomb_image = pygame.image.load(abspath + "images/bomb.png").convert_alpha()
     bomb_rect = bomb_image.get_rect()
-    bomb_font = pygame.font.Font("font/font.ttf", 48)
+    bomb_font = pygame.font.Font(abspath + "font/font.ttf", 48)
     bomb_num = 3
 
     # 每30秒发放一个补给包
@@ -161,17 +163,17 @@ def main():
 
     # 生命数量
     life_num = 3
-    life_image = pygame.image.load("images/life.png").convert_alpha()
+    life_image = pygame.image.load(abspath + "images/life.png").convert_alpha()
     life_rect = life_image.get_rect()
 
     # 用于阻止重复打开记录文件
     recorded = False
 
     # 游戏结束画面
-    gameover_font = pygame.font.Font("font/font.ttf", 48)
-    again_image = pygame.image.load("images/again.png").convert_alpha()
+    gameover_font = pygame.font.Font(abspath + "font/font.ttf", 48)
+    again_image = pygame.image.load(abspath + "images/again.png").convert_alpha()
     again_rect = again_image.get_rect()
-    gameover_image = pygame.image.load("images/gameover.png").convert_alpha()
+    gameover_image = pygame.image.load(abspath + "images/gameover.png").convert_alpha()
     gameover_rect = gameover_image.get_rect()
 
     # 用于切换图片

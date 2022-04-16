@@ -1,10 +1,10 @@
-import pygame
-
+import pygame,os
+abspath = os.getcwd() + "/"
 class Bullet1(pygame.sprite.Sprite):
     def __init__(self, position):
         pygame.sprite.Sprite.__init__(self)
 
-        self.image = pygame.image.load("images/bullet1.png").convert_alpha()
+        self.image = pygame.image.load(abspath + "images/bullet1.png").convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = position
         self.speed = 11
@@ -25,7 +25,7 @@ class Bullet2(pygame.sprite.Sprite):
     def __init__(self, position):
         pygame.sprite.Sprite.__init__(self)
 
-        self.image = pygame.image.load("images/bullet2.png").convert_alpha()
+        self.image = pygame.image.load(abspath + "images/bullet2.png").convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = position
         self.speed = 14#14
