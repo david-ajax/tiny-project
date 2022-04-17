@@ -1,6 +1,5 @@
-// main.cpp
-// author: Wang Zhiyu
-// SFIS C++ Project
+// file_reader.cpp
+// LICENSE: MIT
 #include <bits/stdc++.h>
 using namespace std;
 
