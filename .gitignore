@@ -1,0 +1,13 @@
+# Ignore "ignore" & "tmp" folder
+ignore
+tmp
+# Package
+*.deb
+*.rpm
+*.zst
+*.exe
+*.out
+# Log File
+*.log
+# Rickroll File
+*.rickroll
