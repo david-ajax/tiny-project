@@ -1,10 +1,16 @@
 # fastmaillib.py
 # LICENSE: MIT
-# VERSION: v0.2
+# VERSION: v0.2.1
 """
+说明:
 更加方便地使用 Python 收邮件
 部分基于 Liao Xuefeng 的代码, 并进行了封装操作
 此代码为 Python 3.x 而设计, 但理论上兼容 Python 2.x(2.7)
+"""
+"""
+日志:
+v0.2.3:
+    修复 Get.get 函数中 num 参数不可用问题
 """
 
 import email, smtplib
@@ -23,33 +29,33 @@ class Get:
             obj.pass_(password)
             return obj
         except Exception as e:
-            return False
+            return e
     def num(obj):
         """Get the number of messages on hand"""
         try:
             resp, mails, octets = obj.list()
             return len(mails)
         except Exception as e:
-            return False
+            return e
     def get(obj, num):
         """Get mail's content"""
         try:
             resp, mails, octets = obj.list()
             index = len(mails)
-            resp, lines, octets = obj.retr(index - 1) #
+            resp, lines, octets = obj.retr(num)
             message_content = b'\r\n'.join(lines).decode('utf-8')
             message = Parser().parsestr(message_content)
             info = Get.print_info(message)
             return info
         except Exception as e:
-            return False
+            return e
     def quit(obj):
         """Break connection"""
         try:
             obj.quit()
             return True
         except Exception as e:
-            return False
+            return e
     def print_info(msg, indent=0):
         """Convert mail object to content"""
         total = {}
@@ -64,9 +70,9 @@ class Get:
                         hdr, addr = parseaddr(value)
                         name = Get.decode_str(hdr)
                         value = u'%s <%s>' % (name, addr)
-                        total["name"] = name
-                        total["addr"] = addr
-                        # print(value)
+                        if not("name" in total):
+                            total["name"] = name
+                            total["addr"] = addr
         if msg.is_multipart():
             parts = msg.get_payload()
             for n, part in enumerate(parts):

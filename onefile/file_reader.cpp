@@ -1,5 +1,5 @@
 // file_reader.cpp
-// LICENSE: MIT
+// LICENSE: Nothing(do what ever you want!)
 #include <iostream>
 using namespace std;
 
