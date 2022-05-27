@@ -17,23 +17,29 @@ from random import *
 pygame.init()
 pygame.mixer.init()
 
-bg_size = width, height = 480, 680
-if platform.system().lower() == "Windows":
+global width, height
+if platform.system().lower() == "windows":
+    bg_size = width, height = 600, 900
     screen = pygame.display.set_mode(bg_size)
-elif platform.system().lower() == "Linux":
+elif platform.system().lower() == "linux":
     if os.path.exists("/storage/emulated"): # Android
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        width, height = pygame.display.get_surface().get_size()
     else:
-        screen = pygame.display.set_mode(bg_size) # Linux
-elif platform.system().lower() == "Darwin":
+        bg_size = width, height = 600, 900
+        screen = pygame.display.set_mode(bg_size)
+elif platform.system().lower() == "darwin":
     # TODO: 判断 iOS 与 macOS
+    bg_size = width, height = 800, 900
     screen = pygame.display.set_mode(bg_size)
 else:
+    bg_size = width, height = 800, 900
     screen = pygame.display.set_mode(bg_size)
+bg_size = (width, height)
 pygame.display.set_caption("Plane Fighting")
 key_pressed = pygame.key.get_pressed()
 background = pygame.image.load(abspath + "images/loading.png")  # 图片位置
-screen.blit(background, (0, 0))  # 对齐的坐标
+screen.blit(background, (width // 2 - 240,height // 2 - 350))  # 对齐的坐标
 pygame.display.update()  # 显示内容
 pygame.mixer.music.load(abspath + "sound/game_music.ogg")
 pygame.mixer.music.set_volume(0.1)
@@ -66,7 +72,7 @@ enemy2_down_sound.set_volume(0.2)
 enemy3_down_sound = pygame.mixer.Sound(abspath + "sound/enemy3_down.wav")
 enemy3_down_sound.set_volume(0.5)
 me_down_sound = pygame.mixer.Sound(abspath + "sound/me_down.wav")
-
+time.sleep(1)
 
 def add_small_enemies(group1, group2, num):
     for i in range(num):
@@ -151,11 +157,11 @@ def main():
     touch_down_rect = touch_down_image.get_rect()
     touch_bomb_rect = touch_bomb_image.get_rect()
     touch_up_rect = touch_up_image.get_rect()
-    touch_up_rect.left, touch_up_rect.top = width - width // 4 + touch_up_rect.width, height - height // 4 + touch_up_rect.height - 17
-    touch_left_rect.left, touch_left_rect.top = width - width // 4 + touch_up_rect.width - 17, height - height // 4 + touch_up_rect.height
-    touch_right_rect.left, touch_right_rect.top = width - width // 4 + touch_up_rect.width + 17, height - height // 4 + touch_up_rect.height
-    touch_down_rect.left, touch_down_rect.top = width - width // 4 + touch_up_rect.width, height - height // 4 + touch_up_rect.height + 17
-    touch_bomb_rect.left, touch_bomb_rect.top = width // 4 - touch_up_rect.width - 17, height - height // 4 + touch_up_rect.height
+    touch_up_rect.left, touch_up_rect.top = width - width // 4 + touch_up_rect.width, height - height // 4 + touch_up_rect.height - 64
+    touch_left_rect.left, touch_left_rect.top = width - width // 4 + touch_up_rect.width - 64, height - height // 4 + touch_up_rect.height
+    touch_right_rect.left, touch_right_rect.top = width - width // 4 + touch_up_rect.width + 64, height - height // 4 + touch_up_rect.height
+    touch_down_rect.left, touch_down_rect.top = width - width // 4 + touch_up_rect.width, height - height // 4 + touch_up_rect.height + 64
+    touch_bomb_rect.left, touch_bomb_rect.top = width // 4 - touch_up_rect.width - 64, height - height // 4 + touch_up_rect.height
 
     # 标志是否暂停游戏
     paused = False
@@ -164,7 +170,7 @@ def main():
     resume_nor_image = pygame.image.load(abspath + "images/resume_nor.png").convert_alpha()
     resume_pressed_image = pygame.image.load(abspath + "images/resume_pressed.png").convert_alpha()
     paused_rect = pause_nor_image.get_rect()
-    paused_rect.left, paused_rect.top = width - paused_rect.width - 10, 10
+    paused_rect.left, paused_rect.top = width - paused_rect.width - 20, 20
     paused_image = pause_nor_image
 
     # 设置难度级别
@@ -176,7 +182,7 @@ def main():
     # 全屏炸弹
     bomb_image = pygame.image.load(abspath + "images/bomb.png").convert_alpha()
     bomb_rect = bomb_image.get_rect()
-    bomb_font = pygame.font.Font(abspath + "font/font.ttf", 48)
+    bomb_font = pygame.font.Font(abspath + "font/font.ttf", 64)
     bomb_num = 3
 
     # 每30秒发放一个补给包
@@ -208,7 +214,6 @@ def main():
     again_rect = again_image.get_rect()
     gameover_image = pygame.image.load(abspath + "images/gameover.png").convert_alpha()
     gameover_rect = gameover_image.get_rect()
-
     # 用于切换图片
     switch_image = True
 
@@ -603,15 +608,15 @@ def main():
                     sys.exit()
         if pygame.mouse.get_pressed()[0]:
             pos = pygame.mouse.get_pos()
-            if touch_up_rect.left < pos[0] < touch_up_rect.right and touch_up_rect.top < pos[1] < touch_up_rect.bottom:
+            if touch_up_rect.left - 128 < pos[0] < touch_up_rect.right + 128 and touch_up_rect.top - 128 < pos[1] < touch_up_rect.bottom + 70:
                 me.moveUp()
-            if touch_left_rect.left < pos[0] < touch_left_rect.right and touch_left_rect.top < pos[1] < touch_left_rect.bottom:
+            if touch_left_rect.left - 128 < pos[0] < touch_left_rect.right + 70 and touch_left_rect.top - 128 < pos[1] < touch_left_rect.bottom + 128:
                 me.moveLeft()
-            if touch_right_rect.left < pos[0] < touch_right_rect.right and touch_right_rect.top < pos[1] < touch_right_rect.bottom:
+            if touch_right_rect.left - 70 < pos[0] < touch_right_rect.right + 128 and touch_right_rect.top - 128 < pos[1] < touch_right_rect.bottom + 128:
                 me.moveRight()
-            if touch_down_rect.left < pos[0] < touch_down_rect.right and touch_down_rect.top < pos[1] < touch_down_rect.bottom:
+            if touch_down_rect.left - 128 < pos[0] < touch_down_rect.right + 128 and touch_down_rect.top - 70 < pos[1] < touch_down_rect.bottom + 128:
                 me.moveDown()
-            if touch_bomb_rect.left < pos[0] < touch_bomb_rect.right and touch_bomb_rect.top < pos[1] < touch_bomb_rect.bottom:
+            if touch_bomb_rect.left - 128 < pos[0] < touch_bomb_rect.right + 128 and touch_bomb_rect.top - 128 < pos[1] < touch_bomb_rect.bottom + 128:
                 if bomb_num and last_bomb - time.time() <= -1:
                     bomb_num -= 1
                     bomb_sound.play()
