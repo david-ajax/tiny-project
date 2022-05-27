@@ -8,25 +8,36 @@ import bullet
 import supply
 import time
 import os
+import platform
 
 abspath = os.getcwd() + "/"
 from pygame.locals import *
 from random import *
-jj = 0
+
 pygame.init()
 pygame.mixer.init()
 
-bg_size = width, height = 480, 700
-screen = pygame.display.set_mode(bg_size)
+bg_size = width, height = 480, 680
+if platform.system().lower() == "Windows":
+    screen = pygame.display.set_mode(bg_size)
+elif platform.system().lower() == "Linux":
+    if os.path.exists("/storage/emulated"): # Android
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode(bg_size) # Linux
+elif platform.system().lower() == "Darwin":
+    # TODO: 判断 iOS 与 macOS
+    screen = pygame.display.set_mode(bg_size)
+else:
+    screen = pygame.display.set_mode(bg_size)
 pygame.display.set_caption("Plane Fighting")
 key_pressed = pygame.key.get_pressed()
-background=pygame.image.load(abspath + "images/loading.png")  #图片位置
-screen.blit(background,(0,0))  #对齐的坐标
-pygame.display.update()   #显示内容
+background = pygame.image.load(abspath + "images/loading.png")  # 图片位置
+screen.blit(background, (0, 0))  # 对齐的坐标
+pygame.display.update()  # 显示内容
 pygame.mixer.music.load(abspath + "sound/game_music.ogg")
 pygame.mixer.music.set_volume(0.1)
-pygame.mixer.music.play(-1)
-time.sleep(7.5)
+# time.sleep(7.5)
 background = pygame.image.load(abspath + "images/background.png").convert()
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -57,12 +68,12 @@ enemy3_down_sound.set_volume(0.5)
 me_down_sound = pygame.mixer.Sound(abspath + "sound/me_down.wav")
 
 
-
 def add_small_enemies(group1, group2, num):
     for i in range(num):
         e1 = enemy.SmallEnemy(bg_size)
         group1.add(e1)
         group2.add(e1)
+
 
 def add_mid_enemies(group1, group2, num):
     for i in range(num):
@@ -70,22 +81,24 @@ def add_mid_enemies(group1, group2, num):
         group1.add(e2)
         group2.add(e2)
 
+
 def add_big_enemies(group1, group2, num):
     for i in range(num):
         e3 = enemy.BigEnemy(bg_size)
         group1.add(e3)
         group2.add(e3)
 
+
 def inc_speed(target, inc):
     for each in target:
         each.speed += inc
 
+
 def main():
+    pygame.mixer.music.play(-1)
     # Me
     me = myplane.MyPlane(bg_size)
-
     enemies = pygame.sprite.Group()
-
 
     # Enemy Level 1
     small_enemies = pygame.sprite.Group()
@@ -104,15 +117,15 @@ def main():
     bullet1_index = 0
     BULLET1_NUM = 4
     for i in range(BULLET1_NUM):
-        bullet1.append(bullet.Bullet1((me.rect.centerx-3, me.rect.centery)))
+        bullet1.append(bullet.Bullet1((me.rect.centerx - 3, me.rect.centery)))
 
     # Super Bull
     bullet2 = []
     bullet2_index = 0
     BULLET2_NUM = 8
-    for i in range(BULLET2_NUM//2):
-        bullet2.append(bullet.Bullet2((me.rect.centerx-33, me.rect.centery)))
-        bullet2.append(bullet.Bullet2((me.rect.centerx+30, me.rect.centery)))
+    for i in range(BULLET2_NUM // 2):
+        bullet2.append(bullet.Bullet2((me.rect.centerx - 33, me.rect.centery)))
+        bullet2.append(bullet.Bullet2((me.rect.centerx + 30, me.rect.centery)))
 
     clock = pygame.time.Clock()
 
@@ -126,6 +139,24 @@ def main():
     score = 0
     score_font = pygame.font.Font(abspath + "font/font.ttf", 36)
 
+    # 移动设备触摸支持
+    touch_support = True
+    touch_up_image = pygame.image.load(abspath + "images/touch/u.png").convert_alpha()
+    touch_left_image = pygame.image.load(abspath + "images/touch/l.png").convert_alpha()
+    touch_right_image = pygame.image.load(abspath + "images/touch/r.png").convert_alpha()
+    touch_down_image = pygame.image.load(abspath + "images/touch/d.png").convert_alpha()
+    touch_bomb_image = pygame.image.load(abspath + "images/touch/bomb.png").convert_alpha()
+    touch_left_rect = touch_left_image.get_rect()
+    touch_right_rect = touch_right_image.get_rect()
+    touch_down_rect = touch_down_image.get_rect()
+    touch_bomb_rect = touch_bomb_image.get_rect()
+    touch_up_rect = touch_up_image.get_rect()
+    touch_up_rect.left, touch_up_rect.top = width - width // 4 + touch_up_rect.width, height - height // 4 + touch_up_rect.height - 17
+    touch_left_rect.left, touch_left_rect.top = width - width // 4 + touch_up_rect.width - 17, height - height // 4 + touch_up_rect.height
+    touch_right_rect.left, touch_right_rect.top = width - width // 4 + touch_up_rect.width + 17, height - height // 4 + touch_up_rect.height
+    touch_down_rect.left, touch_down_rect.top = width - width // 4 + touch_up_rect.width, height - height // 4 + touch_up_rect.height + 17
+    touch_bomb_rect.left, touch_bomb_rect.top = width // 4 - touch_up_rect.width - 17, height - height // 4 + touch_up_rect.height
+
     # 标志是否暂停游戏
     paused = False
     pause_nor_image = pygame.image.load(abspath + "images/pause_nor.png").convert_alpha()
@@ -138,6 +169,9 @@ def main():
 
     # 设置难度级别
     level = 1
+    
+    # 初始化炸弹时间锁
+    last_bomb = time.time()
 
     # 全屏炸弹
     bomb_image = pygame.image.load(abspath + "images/bomb.png").convert_alpha()
@@ -159,7 +193,6 @@ def main():
 
     # 解除我方无敌状态定时器
     INVINCIBLE_TIME = USEREVENT + 3
-
 
     # 生命数量
     life_num = 3
@@ -212,16 +245,17 @@ def main():
                     if paused:
                         paused_image = resume_nor_image
                     else:
-                       paused_image = pause_nor_image
+                        paused_image = pause_nor_image
 
             elif event.type == KEYDOWN:
                 if event.key == K_SPACE:
-                    if bomb_num:
+                    if bomb_num and last_bomb - time.time() <= -1:
                         bomb_num -= 1
                         bomb_sound.play()
                         for each in enemies:
                             if each.rect.bottom > 0:
                                 each.active = False
+                        last_bomb = time.time()
 
             elif event.type == SUPPLY_TIME:
                 supply_sound.play()
@@ -237,7 +271,6 @@ def main():
             elif event.type == INVINCIBLE_TIME:
                 me.invincible = False
                 pygame.time.set_timer(INVINCIBLE_TIME, 0)
-                         
 
         # 根据用户的得分增加难度
         if level == 1 and score > 50000:
@@ -274,14 +307,13 @@ def main():
             upgrade_sound.play()
             # 增加5架小型敌机、3架中型敌机和2架大型敌机
             add_small_enemies(small_enemies, enemies, 300)
-            
+
             # 提升小型敌机的速度
             inc_speed(small_enemies, 1)
             inc_speed(mid_enemies, 1)
-            
 
         screen.blit(background, (0, 0))
-                
+
         if life_num and not paused:
             # 检测用户的键盘操作
             key_pressed = pygame.key.get_pressed()
@@ -294,26 +326,23 @@ def main():
                 me.moveLeft()
             elif key_pressed[K_d] or key_pressed[K_RIGHT]:
                 me.moveRight()
-            elif key_pressed[K_F1]:#100核弹
-                bomb_num = 100
-            elif key_pressed[K_F2]:#不使用双子弹
+            elif key_pressed[K_F1]:  # +100核弹
+                bomb_num += 100
+            elif key_pressed[K_F2]:  # 不使用双子弹
                 is_double_bullet = True
-            elif key_pressed[K_F3]:#使用双子弹
+            elif key_pressed[K_F3]:  # 使用双子弹
                 is_double_bullet = False
-            elif key_pressed[K_F4]:#生命+1
+            elif key_pressed[K_F4]:  # 生命+1
                 life_num += 1
-            elif key_pressed[K_F5]:#小+1
+            elif key_pressed[K_F5]:  # 小+1
                 add_small_enemies(small_enemies, enemies, 100)
-            elif key_pressed[K_F6]:#中+1
+            elif key_pressed[K_F6]:  # 中+1
                 add_mid_enemies(mid_enemies, enemies, 100)
-            elif key_pressed[K_F7]:#大+1
+            elif key_pressed[K_F7]:  # 大+1
                 add_big_enemies(big_enemies, enemies, 100)
             elif key_pressed[K_F8]:
                 level = 4
                 score = 1000000
-                
-                
-            
 
             # 绘制全屏炸弹补给并检测是否获得
             if bomb_supply.active:
@@ -336,19 +365,18 @@ def main():
                     bullet_supply.active = False
 
             # 发射子弹
-            if not(delay % 10):
+            if not (delay % 10):
                 bullet_sound.play()
                 if is_double_bullet:
                     bullets = bullet2
-                    bullets[bullet2_index].reset((me.rect.centerx-33, me.rect.centery))
-                    bullets[bullet2_index+1].reset((me.rect.centerx+30, me.rect.centery))
+                    bullets[bullet2_index].reset((me.rect.centerx - 33, me.rect.centery))
+                    bullets[bullet2_index + 1].reset((me.rect.centerx + 30, me.rect.centery))
                     bullet2_index = (bullet2_index + 2) % BULLET2_NUM
                 else:
                     bullets = bullet1
                     bullets[bullet1_index].reset(me.rect.midtop)
                     bullet1_index = (bullet1_index + 1) % BULLET1_NUM
 
-                
             # 检测子弹是否击中敌机
             for b in bullets:
                 if b.active:
@@ -365,7 +393,7 @@ def main():
                                     e.active = False
                             else:
                                 e.active = False
-            
+
             # 绘制大型敌机
             for each in big_enemies:
                 if each.active:
@@ -394,13 +422,13 @@ def main():
                                      (each.rect.left, each.rect.top - 5), \
                                      (each.rect.left + each.rect.width * energy_remain, \
                                       each.rect.top - 5), 2)
-                        
+
                     # 即将出现在画面中，播放音效
                     if each.rect.bottom == -50:
                         enemy3_fly_sound.play(-1)
                 else:
                     # 毁灭
-                    if not(delay % 3):
+                    if not (delay % 3):
                         if e3_destroy_index == 0:
                             enemy3_down_sound.play()
                         screen.blit(each.destroy_images[e3_destroy_index], each.rect)
@@ -446,7 +474,7 @@ def main():
                                       each.rect.top - 5), 2)
                 else:
                     # 毁灭
-                    if not(delay % 3):
+                    if not (delay % 3):
                         if e2_destroy_index == 0:
                             enemy2_down_sound.play()
                         screen.blit(each.destroy_images[e2_destroy_index], each.rect)
@@ -462,7 +490,7 @@ def main():
                     screen.blit(each.image, each.rect)
                 else:
                     # 毁灭
-                    if not(delay % 3):
+                    if not (delay % 3):
                         if e1_destroy_index == 0:
                             enemy1_down_sound.play()
                             score += 1000
@@ -476,7 +504,7 @@ def main():
                 me.active = False
                 for e in enemies_down:
                     e.active = False
-            
+
             # 绘制我方飞机
             if me.active:
                 if switch_image:
@@ -485,7 +513,7 @@ def main():
                     screen.blit(me.image2, me.rect)
             else:
                 # 毁灭
-                if not(delay % 3):
+                if not (delay % 3):
                     if me_destroy_index == 0:
                         me_down_sound.play()
                     screen.blit(me.destroy_images[me_destroy_index], me.rect)
@@ -496,7 +524,7 @@ def main():
                         pygame.time.set_timer(INVINCIBLE_TIME, 3 * 1000)
 
             # 绘制全屏炸弹数量
-            bomb_text = bomb_font.render("× %d" % bomb_num, True, WHITE)
+            bomb_text = bomb_font.render("%d" % bomb_num, True, WHITE)
             text_rect = bomb_text.get_rect()
             screen.blit(bomb_image, (10, height - 10 - bomb_rect.height))
             screen.blit(bomb_text, (20 + bomb_rect.width, height - 5 - text_rect.height))
@@ -505,11 +533,11 @@ def main():
             if life_num:
                 for i in range(life_num):
                     screen.blit(life_image, \
-                                (width-10-(i+1)*life_rect.width, \
-                                 height-10-life_rect.height))
+                                (width - 10 - (i + 1) * life_rect.width, \
+                                 height - 10 - life_rect.height))
 
             # 绘制得分
-            score_text = score_font.render("Score : %s" % str(score), True, WHITE)
+            score_text = score_font.render("Score: %s" % str(score), True, WHITE)
             screen.blit(score_text, (10, 5))
 
         # 绘制游戏结束画面
@@ -535,30 +563,30 @@ def main():
                         f.write(str(score))
 
             # 绘制结束画面
-            record_score_text = score_font.render("Best : %d" % record_score, True, (255, 255, 255))
+            record_score_text = score_font.render("Best: %d" % record_score, True, (255, 255, 255))
             screen.blit(record_score_text, (50, 50))
-            
+
             gameover_text1 = gameover_font.render("Your Score", True, (255, 255, 255))
             gameover_text1_rect = gameover_text1.get_rect()
             gameover_text1_rect.left, gameover_text1_rect.top = \
-                                 (width - gameover_text1_rect.width) // 2, height // 3
+                (width - gameover_text1_rect.width) // 2, height // 3
             screen.blit(gameover_text1, gameover_text1_rect)
-            
+
             gameover_text2 = gameover_font.render(str(score), True, (255, 255, 255))
             gameover_text2_rect = gameover_text2.get_rect()
             gameover_text2_rect.left, gameover_text2_rect.top = \
-                                 (width - gameover_text2_rect.width) // 2, \
-                                 gameover_text1_rect.bottom + 10
+                (width - gameover_text2_rect.width) // 2, \
+                gameover_text1_rect.bottom + 10
             screen.blit(gameover_text2, gameover_text2_rect)
 
             again_rect.left, again_rect.top = \
-                             (width - again_rect.width) // 2, \
-                             gameover_text2_rect.bottom + 50
+                (width - again_rect.width) // 2, \
+                gameover_text2_rect.bottom + 50
             screen.blit(again_image, again_rect)
 
             gameover_rect.left, gameover_rect.top = \
-                                (width - again_rect.width) // 2, \
-                                again_rect.bottom + 10
+                (width - again_rect.width) // 2, \
+                again_rect.bottom + 10
             screen.blit(gameover_image, gameover_rect)
 
             # 检测用户的鼠标操作
@@ -567,31 +595,47 @@ def main():
                 # 获取鼠标坐标
                 pos = pygame.mouse.get_pos()
                 # 如果用户点击“重新开始”
-                if again_rect.left < pos[0] < again_rect.right and \
-                   again_rect.top < pos[1] < again_rect.bottom:
-                    # 调用main函数，重新开始游戏
+                if again_rect.left < pos[0] < again_rect.right and again_rect.top < pos[1] < again_rect.bottom:
                     main()
-                # 如果用户点击“结束游戏”            
-                elif gameover_rect.left < pos[0] < gameover_rect.right and \
-                     gameover_rect.top < pos[1] < gameover_rect.bottom:
-                    # 退出游戏
+                # 如果用户点击“结束游戏”
+                if gameover_rect.left < pos[0] < gameover_rect.right and gameover_rect.top < pos[1] < gameover_rect.bottom:
                     pygame.quit()
-                    sys.exit()      
-
-        # 绘制暂停按钮
+                    sys.exit()
+        if pygame.mouse.get_pressed()[0]:
+            pos = pygame.mouse.get_pos()
+            if touch_up_rect.left < pos[0] < touch_up_rect.right and touch_up_rect.top < pos[1] < touch_up_rect.bottom:
+                me.moveUp()
+            if touch_left_rect.left < pos[0] < touch_left_rect.right and touch_left_rect.top < pos[1] < touch_left_rect.bottom:
+                me.moveLeft()
+            if touch_right_rect.left < pos[0] < touch_right_rect.right and touch_right_rect.top < pos[1] < touch_right_rect.bottom:
+                me.moveRight()
+            if touch_down_rect.left < pos[0] < touch_down_rect.right and touch_down_rect.top < pos[1] < touch_down_rect.bottom:
+                me.moveDown()
+            if touch_bomb_rect.left < pos[0] < touch_bomb_rect.right and touch_bomb_rect.top < pos[1] < touch_bomb_rect.bottom:
+                if bomb_num and last_bomb - time.time() <= -1:
+                    bomb_num -= 1
+                    bomb_sound.play()
+                    for each in enemies:
+                        if each.rect.bottom > 0:
+                            each.active = False
+                    last_bomb = time.time()
+        # 绘制按钮
         screen.blit(paused_image, paused_rect)
-
+        screen.blit(touch_up_image, touch_up_rect)
+        screen.blit(touch_left_image, touch_left_rect)
+        screen.blit(touch_right_image, touch_right_rect)
+        screen.blit(touch_down_image, touch_down_rect)
+        screen.blit(touch_bomb_image, touch_bomb_rect)
         # 切换图片
-        if not(delay % 5):
+        if not (delay % 5):
             switch_image = not switch_image
-
         delay -= 1
         if not delay:
             delay = 100
-
         pygame.display.flip()
         clock.tick(60)
-        
+
+
 if __name__ == "__main__":
     try:
         main()
